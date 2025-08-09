@@ -1,0 +1,11 @@
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+sqlmodel==0.0.21
+pydantic==2.7.4
+python-multipart==0.0.9
+sacrebleu==2.4.3
+rouge-score==0.1.2
+litellm==1.43.14
+# transformers and torch are optional for local models; install manually if needed
+# transformers==4.42.3
+# torch==2.3.1
