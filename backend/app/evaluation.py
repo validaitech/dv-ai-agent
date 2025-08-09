@@ -6,8 +6,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List
 
-from sqlmodel import select
-
 from .database import get_session
 from .metrics import METRICS_REGISTRY
 from .model_provider import ModelProvider
@@ -74,9 +72,7 @@ async def run_evaluation_async(run_id: int) -> None:
         )
 
         metric_sums: Dict[str, float] = {name: 0.0 for name in metrics}
-        samples: List[Dict] = []
 
-        # Simple sequential loop with small concurrency for API providers
         semaphore = asyncio.Semaphore(4)
 
         async def process_item(index: int, input_text: str, reference_text: str) -> None:
@@ -89,7 +85,7 @@ async def run_evaluation_async(run_id: int) -> None:
                     if not fn:
                         continue
                     try:
-                        s = await asyncio.to_thread(fn, reference_text, output_text)
+                        s = await asyncio.to_thread(fn, reference_text, output_text, input_text)
                     except Exception:
                         s = 0.0
                     scores[m] = float(s)
@@ -111,7 +107,8 @@ async def run_evaluation_async(run_id: int) -> None:
         await asyncio.gather(*tasks)
 
         # Aggregate
-        aggregate = {name: metric_sums[name] / max(len(items), 1) for name in metrics}
+        total = max(len(items), 1)
+        aggregate = {name: metric_sums[name] / total for name in metrics}
 
         with get_session() as session:
             run = session.get(EvaluationRun, run_id)

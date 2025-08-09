@@ -6,7 +6,7 @@ except Exception:  # pragma: no cover - optional dependency at runtime
     rouge_scorer = None
 
 
-def rougeL(reference: str, prediction: str) -> float:
+def rougeL(reference: str, prediction: str, input_text: str) -> float:  # input_text unused
     if rouge_scorer is None:
         return 0.0
     scorer = rouge_scorer.RougeScorer(["rougeL"], use_stemmer=True)

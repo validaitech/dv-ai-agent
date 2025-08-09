@@ -1,18 +1,22 @@
 # LLM Checks - Evaluation Service
 
-A minimal evaluation service inspired by Deepchecks, focused on LLM generation tasks. Supports dataset upload (JSONL/CSV), running evaluations against multiple providers via LiteLLM/OpenAI or local HuggingFace models, and computing standard text metrics (Exact Match, ROUGE-L, BLEU).
+A minimal evaluation service inspired by Deepchecks, focused on LLM generation tasks. Supports dataset upload (JSONL/CSV), running evaluations against multiple providers via LiteLLM/OpenAI or local HuggingFace models, and computing standard text metrics (Exact Match, ROUGE-L, BLEU), as well as LLM-judge evaluations (relevance, hallucination, toxicity, bias, precision, recall, task completion, correctness, confidence, and data validation).
 
 ## Features
 - Upload datasets (`input`, `reference`) as JSONL or CSV
 - Configure model provider (`litellm` / `openai` / `huggingface`) and model name
-- Compute metrics: Exact Match, ROUGE-L, BLEU
-- Async background execution with per-item and aggregate results persisted in SQLite
+- Metrics: Exact Match, ROUGE-L, BLEU, and judge-based: answer_relevancy, hallucinations, toxicity, biasness, precision, recall, task_completion, correctness, confidence_score, data_validation
+- Async background execution with per-item and aggregate results persisted in PostgreSQL
 - REST API via FastAPI
 
-## Quickstart
+## Setup
 
-1. Create and activate a Python environment (recommended)
+1. Create `.env` from example and adjust values
+```bash
+cp .env.example .env
+```
 
+2. Create and activate a Python environment
 ```bash
 cd backend
 python -m venv .venv
@@ -20,20 +24,14 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-2. Set provider credentials (examples)
+3. Ensure PostgreSQL is running and `DATABASE_URL` is reachable (default: `postgresql+psycopg://postgres:postgres@localhost:5432/llmchecks`). Create the database if needed.
 
-```bash
-# For OpenAI / LiteLLM compatible providers
-export OPENAI_API_KEY=sk-...
-```
-
-3. Run the server
-
+4. Run the server
 ```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-4. Use the API
+## API
 - Health: GET http://localhost:8000/health
 - Metrics: GET http://localhost:8000/metrics
 - Upload dataset: POST http://localhost:8000/datasets (multipart form: `file`, optional `name`)
@@ -47,17 +45,17 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
   "temperature": 0.0,
   "top_p": 1.0,
   "max_tokens": 256,
-  "metrics": ["exact_match", "rougeL", "bleu"]
+  "metrics": [
+    "exact_match", "rougeL", "bleu",
+    "answer_relevancy", "hallucinations", "toxicity", "biasness",
+    "precision", "recall", "task_completion", "correctness", "confidence_score", "data_validation"
+  ]
 }
 ```
 - Check status: GET http://localhost:8000/evaluations/{run_id}
 - Fetch results: GET http://localhost:8000/evaluations/{run_id}/results
 
-## Dataset format
-- JSONL with objects: `{ "input": "...", "reference": "..." }`
-- CSV with headers: `input,reference`
-
 ## Notes
-- BLEU and ROUGE depend on optional packages; they are included.
-- Local HuggingFace models require `transformers` (and possibly `torch`). Install as needed and use `"model_provider": "huggingface"` with `model_name` like `gpt2`.
-- Results are stored in `backend/data/app.db` and datasets in `backend/data/datasets/`.
+- Judge metrics use a separate judge model configured via `JUDGE_PROVIDER`/`JUDGE_MODEL`.
+- For toxicity/bias, optional classical classifiers can be added; current implementation uses LLM judging.
+- Local HuggingFace models require `transformers` and potentially `torch`.

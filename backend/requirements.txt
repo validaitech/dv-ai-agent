@@ -6,6 +6,8 @@ python-multipart==0.0.9
 sacrebleu==2.4.3
 rouge-score==0.1.2
 litellm==1.43.14
+psycopg[binary]==3.2.1
+python-dotenv==1.0.1
 # transformers and torch are optional for local models; install manually if needed
 # transformers==4.42.3
 # torch==2.3.1
