@@ -10,5 +10,5 @@ def _normalize(text: str) -> str:
     return text.strip()
 
 
-def exact_match(reference: str, prediction: str) -> float:
+def exact_match(reference: str, prediction: str, input_text: str) -> float:  # input_text unused
     return 1.0 if _normalize(reference) == _normalize(prediction) else 0.0
