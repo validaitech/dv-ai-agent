@@ -1,0 +1,24 @@
+# Node
+node_modules/
+.next/
+out/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.env
+.env.*
+
+# OS/Editors
+.DS_Store
+.idea/
+.vscode/
+
+# Build/Dist
+build/
+dist/
+coverage/
+
+# Docker
+*.log
