@@ -18,10 +18,11 @@ services:
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     environment:
       DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/llmchecks
-      LLM_PROVIDER: ${LLM_PROVIDER:-litellm}
-      LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
-      JUDGE_PROVIDER: ${JUDGE_PROVIDER:-litellm}
-      JUDGE_MODEL: ${JUDGE_MODEL:-gpt-4o-mini}
+      LLM_PROVIDER: ${LLM_PROVIDER:-gemini}
+      LLM_MODEL: ${LLM_MODEL:-gemini-1.5-flash}
+      JUDGE_PROVIDER: ${JUDGE_PROVIDER:-gemini}
+      JUDGE_MODEL: ${JUDGE_MODEL:-gemini-1.5-flash}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
     depends_on:
       - db

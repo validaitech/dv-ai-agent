@@ -14,8 +14,8 @@ export default function EvaluationsPage() {
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [metrics, setMetrics] = useState<Record<string, string>>({});
   const [datasetId, setDatasetId] = useState<number | ''>(preselectedDatasetId || '');
-  const [modelProvider, setModelProvider] = useState('litellm');
-  const [modelName, setModelName] = useState('gpt-4o-mini');
+  const [modelProvider, setModelProvider] = useState('gemini');
+  const [modelName, setModelName] = useState('gemini-1.5-flash');
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>(["exact_match", "rougeL", "bleu", "answer_relevancy", "correctness", "toxicity"]);
   const [runs, setRuns] = useState<Run[]>([]);
 
@@ -85,6 +85,7 @@ export default function EvaluationsPage() {
         </select>
         <label>Model Provider</label>
         <select value={modelProvider} onChange={e => setModelProvider(e.target.value)}>
+          <option value="gemini">Gemini</option>
           <option value="litellm">LiteLLM</option>
           <option value="openai">OpenAI</option>
           <option value="huggingface">HuggingFace</option>

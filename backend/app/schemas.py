@@ -20,12 +20,16 @@ class DatasetInfo(BaseModel):
 class EvaluationCreateRequest(BaseModel):
     name: str = Field(description="A friendly name for the evaluation run")
     dataset_id: int
-    model_provider: Literal["openai", "litellm", "huggingface"] = "litellm"
-    model_name: str
+    model_provider: Literal["gemini", "openai", "litellm", "huggingface"] = "gemini"
+    model_name: str = Field(default="gemini-1.5-flash")
     temperature: float = 0.0
     top_p: float = 1.0
     max_tokens: int = 512
-    metrics: List[str] = Field(default_factory=lambda: ["exact_match", "rougeL", "bleu"])
+    metrics: List[str] = Field(default_factory=lambda: [
+        "exact_match", "rougeL", "bleu",
+        "answer_relevancy", "hallucinations", "toxicity", "biasness",
+        "precision", "recall", "task_completion", "correctness", "confidence_score", "data_validation"
+    ])
 
 
 class EvaluationCreateResponse(BaseModel):

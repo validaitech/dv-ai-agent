@@ -8,6 +8,7 @@ rouge-score==0.1.2
 litellm==1.43.14
 psycopg[binary]==3.2.1
 python-dotenv==1.0.1
+google-generativeai==0.7.2
 # transformers and torch are optional for local models; install manually if needed
 # transformers==4.42.3
 # torch==2.3.1

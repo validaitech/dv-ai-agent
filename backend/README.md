@@ -1,10 +1,10 @@
 # LLM Checks - Evaluation Service
 
-A minimal evaluation service inspired by Deepchecks, focused on LLM generation tasks. Supports dataset upload (JSONL/CSV), running evaluations against multiple providers via LiteLLM/OpenAI or local HuggingFace models, and computing standard text metrics (Exact Match, ROUGE-L, BLEU), as well as LLM-judge evaluations (relevance, hallucination, toxicity, bias, precision, recall, task completion, correctness, confidence, and data validation).
+A minimal evaluation service inspired by Deepchecks, focused on LLM generation tasks. Supports dataset upload (JSONL/CSV), running evaluations against multiple providers (Gemini, LiteLLM/OpenAI, HuggingFace), standard text metrics (Exact Match, ROUGE-L, BLEU), and LLM-judge evaluations (relevance, hallucination, toxicity, bias, precision, recall, task completion, correctness, confidence, and data validation).
 
 ## Features
 - Upload datasets (`input`, `reference`) as JSONL or CSV
-- Configure model provider (`litellm` / `openai` / `huggingface`) and model name
+- Providers: **Gemini** (default), LiteLLM/OpenAI, HuggingFace
 - Metrics: Exact Match, ROUGE-L, BLEU, and judge-based: answer_relevancy, hallucinations, toxicity, biasness, precision, recall, task_completion, correctness, confidence_score, data_validation
 - Async background execution with per-item and aggregate results persisted in PostgreSQL
 - REST API via FastAPI
@@ -14,6 +14,7 @@ A minimal evaluation service inspired by Deepchecks, focused on LLM generation t
 1. Create `.env` from example and adjust values
 ```bash
 cp .env.example .env
+# Set GEMINI_API_KEY
 ```
 
 2. Create and activate a Python environment
@@ -31,6 +32,10 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
+## Use Gemini (free tier)
+- Get an API key from Google AI Studio and set `GEMINI_API_KEY` in `.env`.
+- Default provider/model are `gemini` and `gemini-1.5-flash`. You can override per-run via API.
+
 ## API
 - Health: GET http://localhost:8000/health
 - Metrics: GET http://localhost:8000/metrics
@@ -40,8 +45,8 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 {
   "name": "demo",
   "dataset_id": 1,
-  "model_provider": "litellm",
-  "model_name": "gpt-4o-mini",
+  "model_provider": "gemini",
+  "model_name": "gemini-1.5-flash",
   "temperature": 0.0,
   "top_p": 1.0,
   "max_tokens": 256,
@@ -56,6 +61,6 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 - Fetch results: GET http://localhost:8000/evaluations/{run_id}/results
 
 ## Notes
-- Judge metrics use a separate judge model configured via `JUDGE_PROVIDER`/`JUDGE_MODEL`.
-- For toxicity/bias, optional classical classifiers can be added; current implementation uses LLM judging.
+- Judge metrics use the judge provider/model (`JUDGE_PROVIDER`/`JUDGE_MODEL`), defaulting to Gemini.
+- You can still use LiteLLM/OpenAI by setting `LLM_PROVIDER=litellm` and the appropriate key.
 - Local HuggingFace models require `transformers` and potentially `torch`.

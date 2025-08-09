@@ -14,6 +14,7 @@ class ModelProvider:
 
         self._pipeline = None
         self._litellm = None
+        self._gemini_model = None
 
         if provider in {"litellm", "openai"}:
             try:
@@ -25,12 +26,14 @@ class ModelProvider:
         elif provider == "huggingface":
             # Lazy import; heavy deps may not be available. Only instantiate on first call.
             pass
+        elif provider == "gemini":
+            # Configure on first use
+            pass
 
     def generate(self, prompt: str) -> str:
         if self.provider in {"litellm", "openai"}:
             if self._litellm is None:
                 raise RuntimeError("litellm is not installed. Please install to use hosted providers.")
-            # Use chat.completions API shape for generality
             response = self._litellm.completion(
                 model=self.model_name,
                 messages=[{"role": "user", "content": prompt}],
@@ -38,7 +41,6 @@ class ModelProvider:
                 top_p=self.top_p,
                 max_tokens=self.max_tokens,
             )
-            # litellm normalizes choices[0].message["content"]
             content = response.choices[0].message["content"]  # type: ignore
             return content or ""
 
@@ -58,5 +60,32 @@ class ModelProvider:
             if isinstance(outputs, list) and outputs and "generated_text" in outputs[0]:
                 return str(outputs[0]["generated_text"])  # type: ignore
             return str(outputs)
+
+        if self.provider == "gemini":
+            if self._gemini_model is None:
+                try:
+                    import google.generativeai as genai  # type: ignore
+                except Exception as e:
+                    raise RuntimeError("google-generativeai is not installed. Please install to use Gemini.") from e
+                api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or os.getenv("GOOGLE_GENAI_API_KEY")
+                if not api_key:
+                    raise RuntimeError("GEMINI_API_KEY (or GOOGLE_API_KEY) is required for Gemini provider.")
+                genai.configure(api_key=api_key)
+                self._gemini_model = genai.GenerativeModel(
+                    model_name=self.model_name,
+                    generation_config={
+                        "temperature": self.temperature,
+                        "top_p": self.top_p,
+                        "max_output_tokens": self.max_tokens,
+                    },
+                )
+            try:
+                resp = self._gemini_model.generate_content(prompt)
+                # For safety, handle both .text and candidates
+                if hasattr(resp, "text") and resp.text is not None:
+                    return str(resp.text)
+                return str(resp)
+            except Exception:
+                return ""
 
         raise ValueError(f"Unknown provider: {self.provider}")
